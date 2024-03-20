@@ -24,7 +24,7 @@ def auth(message):
         if message.text.isdigit():
             tabel = message.text
             user = cfg.select_user(tabel)
-            if user[0].startswith('<br'): # Если пользователь не существует в log_auth_var
+            if user is None: # Если пользователь не существует в log_auth_var
                 if cfg.check_user_true(tabel):
                     cfg.sign_up(str(message.chat.id), tabel)
                     bot.send_message(message.chat.id,text=f"Здравствуйте, <b>{user[0]}!</b>\n\nВыберите услугу", reply_markup = keyboards.kb_main_menu())
@@ -74,7 +74,7 @@ def find_by_number(message):
     inv_num = message.text
     if inv_num.isdigit():
         vehicle = cfg.get_vehicle_by_number(inv_num)
-        if len(vehicle[0]) < 100: # Если ответ на запрос окажется пустым, он выдаёт ошибку где то на сервере и её передаёт в ответ строкой "vehicle[[str], ], поэтому проверка 0 элемента списка на кол-во символов"
+        if vehicle is None:
             bot.send_photo(
                 message.chat.id,
                 photo=open(f'{path.join(path.dirname(__file__), cfg.get_image(vehicle[5]))}', 'rb'),
@@ -127,7 +127,7 @@ def find_by_power_second_step(message):
 def find_by_power_final_step(message):
     if status != 0:
         vehicle_list = cfg.get_vehicle_by_power(kw, status)
-        if len(vehicle_list[0][0]) < 100: # То же, что и в find_by_number()
+        if vehicle_list is None:
             bot.send_message(message.chat.id, text=f'Список двигателей мощностью {kw} кВт:', reply_markup = keyboards.kb_main_menu())
             for vehicle in vehicle_list:
                 bot.send_photo(
