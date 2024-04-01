@@ -229,10 +229,11 @@ def notify_admin(txt=None):  # Оповещения админов
 
 
 if __name__ == '__main__':
-    t1 = threading.Thread(target=bot.polling)
-    t2 = threading.Thread(target=notify_admin)
-    t1.start()
-    t2.start()
-    t1.join()
-    t2.join()
+    bot.polling()
+    #t1 = threading.Thread(target=bot.polling)
+    #t2 = threading.Thread(target=notify_admin)
+    #t1.start()
+    #t2.start()
+    #t1.join()
+    #t2.join()
     print('БОТ ЗАПУЩЕН')
