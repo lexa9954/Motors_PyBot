@@ -229,7 +229,7 @@ def notify_admin(txt=None):  # Оповещения админов
 
 
 if __name__ == '__main__':
-    bot.polling()
+    bot.polling(none_stop=True, timeout=600)
     #t1 = threading.Thread(target=bot.polling)
     #t2 = threading.Thread(target=notify_admin)
     #t1.start()
