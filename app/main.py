@@ -74,7 +74,8 @@ def find_by_number(message):
     inv_num = message.text
     if inv_num.isdigit():
         vehicle = cfg.get_vehicle_by_number(inv_num)
-        if vehicle is None:
+        print(vehicle)
+        if vehicle is not None:
             bot.send_photo(
                 message.chat.id,
                 photo=open(f'{path.join(path.dirname(__file__), cfg.get_image(vehicle[5]))}', 'rb'),
@@ -127,7 +128,7 @@ def find_by_power_second_step(message):
 def find_by_power_final_step(message):
     if status != 0:
         vehicle_list = cfg.get_vehicle_by_power(kw, status)
-        if vehicle_list is None:
+        if vehicle_list is not None:
             bot.send_message(message.chat.id, text=f'Список двигателей мощностью {kw} кВт:', reply_markup = keyboards.kb_main_menu())
             for vehicle in vehicle_list:
                 bot.send_photo(
@@ -218,6 +219,8 @@ def notify_admin(txt=None):  # Оповещения админов
         else:
             # Для каждого администратора в списке администраторов отправляем каждое уведомление из списка уведомлений.
             for admin in admin_list:
+                print(admin)
+                print(admin[4])
                 for m in txt:
                     print(f"Отправка сообщения админу {admin[4]}:", m[0])
                     bot.send_message(admin[4], text=m[0])
