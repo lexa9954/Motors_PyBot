@@ -124,6 +124,7 @@ def change_status(inv_num, status):
 def insert_history_status(inv_num, chat_id, status_id, state):
     motorObj_id = execute_query_read(URL+f'SELECT id FROM motor_objects WHERE inventory_num = {inv_num}', 1)
     people_id = execute_query_read(URL+f'SELECT id_people FROM log_auth_var WHERE chat_id = {chat_id}', 1)
+    print(people_id[0])
     query = f'''INSERT INTO history_motor_status (motorObject_id, date_status, people_id, status_id, state_id) 
                 VALUES ({motorObj_id[0]}, CURRENT_DATE(), {people_id[0]}, {status_id}, {state})'''
     response = execute_query(URL+query, 1)
