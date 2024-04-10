@@ -1,8 +1,11 @@
 import requests
 import telebot
+from telebot import apihelper
+
 
 URL = 'http://10.21.199.88/php_app_query.php?query='
 BOT_TOKEN = '6956463991:AAHMWaqjs3ZiOlDGYcWnrRsFcgwsbklqUv8'
+apihelper.proxy = {'https':'socks5://198.199.120.102:1080'}
 
 
 def send_request(url):
