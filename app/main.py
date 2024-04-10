@@ -8,7 +8,7 @@ import time
 bot = cfg.telebot.TeleBot(cfg.BOT_TOKEN, parse_mode='HTML')
 user_online = False
 
-print('БОТ ЗАПУЩЕН')
+
 
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -226,7 +226,6 @@ def notify_admin(txt=None):  # Оповещения админов
         # Ожидаем 15 секунд перед повторным выполнением
         print("Ожидание 15 секунд перед следующим оповещением...")
         time.sleep(15)
-
 
 if __name__ == '__main__':
     t1 = threading.Thread(target=bot.polling)
