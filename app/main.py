@@ -78,7 +78,8 @@ def find_by_number(message):
         if vehicle is not None:
             bot.send_photo(
                 message.chat.id,
-                photo=open(f'{path.join(path.dirname(__file__), cfg.get_image(vehicle[5]))}', 'rb'),
+                #photo=open(f'{path.join(path.dirname(__file__), cfg.get_image(vehicle[5]))}', 'rb'),
+                photo=open(f'{cfg.get_image(vehicle[5])}', 'rb'),
                 caption=f'<b>Инв. №: <u> F-{vehicle[0]} </u>\nНаименование: <u> {vehicle[1]} </u>\nМощность: <u> {vehicle[2]}кВт </u>\nВольтаж: <u> {vehicle[3]}В </u>\nМестоположение: <u> {vehicle[4]} </u>\nСтатус: <u> {vehicle[5]} </u></b>',
                 reply_markup=keyboards.ikb_vehicle()
             )
@@ -133,7 +134,7 @@ def find_by_power_final_step(message):
             for vehicle in vehicle_list:
                 bot.send_photo(
                     message.chat.id,
-                    photo=open(f"{path.join(path.dirname(__file__), cfg.get_image(vehicle[5]))}", "rb"),
+                    photo=open(f"{cfg.get_image(vehicle[5])}", "rb"),
                     caption=f"<b>Инв. №: <u> F-{vehicle[0]} </u>\nНаименование: <u> {vehicle[1]} </u>\nМощность: <u> {vehicle[2]}кВт </u>\nВольтаж: <u> {vehicle[3]}В </u>\nМестоположение: <u> {vehicle[4]} </u>\nСтатус: <u> {vehicle[5]} </u></b>",
                     reply_markup=keyboards.ikb_vehicle()
                 )
