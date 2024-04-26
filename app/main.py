@@ -122,7 +122,7 @@ def find_by_number(message):
             bot.send_photo(message.chat.id, 
                             #photo = open(f'{path.join(path.dirname(__file__), f'{cfg.get_image(vehicle[5])}')}', 'rb'), caption=f'<b>Инв. №: <u> F-{vehicle[0]} </u>\nНаименование: <u> {vehicle[1]} </u>\nМощность: <u> {vehicle[2]}кВт </u>\nВольтаж: <u> {vehicle[3]}В </u>\nМестоположение: <u> {vehicle[4]} </u>\nСтатус: <u> {vehicle[5]} </u></b>',
                            # Открытие файла с фотографией
-                           photo = open(f"{path.join(path.dirname(__file__), f'{cfg.get_image(vehicle[5])}')}", 'rb'),
+                           photo=open(f'{cfg.get_image(vehicle[5])}', 'rb'),
                            # Создание подписи к фотографии
                            caption=f"<b>Инв. №: <u> F-{vehicle[0]} </u>\nНаименование: <u> {vehicle[1]} </u>\nМощность: <u> {vehicle[2]}кВт </u>\nВольтаж: <u> {vehicle[3]}В </u>\nМестоположение: <u> {vehicle[4]} </u>\nСтатус: <u> {vehicle[5]} </u></b>",
 
@@ -181,8 +181,9 @@ def find_by_power_final_step(message):
             bot.send_message(message.chat.id, text=f'Список двигателей мощностью {kw} кВт:', reply_markup = keyboards.kb_main_menu())
             for vehicle in vehicle_list:
                 # open(f'{path.join(path.dirname(__file__), f'{cfg.get_image(vehicle[5])}')}', 'rb') - для localhost
-                bot.send_photo(message.chat.id, 
-                               photo = open(f'{cfg.get_image(vehicle[5])}', 'rb'), caption=f'<b>Инв. №: <u> F-{vehicle[0]} </u>\nНаименование: <u> {vehicle[1]} </u>\nМощность: <u> {vehicle[2]}кВт </u>\nВольтаж: <u> {vehicle[3]}В </u>\nМестоположение: <u> {vehicle[4]} </u>\nСтатус: <u> {vehicle[5]} </u></b>', 
+                bot.send_photo(message.chat.id,
+                               photo=open(f'{cfg.get_image(vehicle[5])}', 'rb'),
+                               caption=f'<b>Инв. №: <u> F-{vehicle[0]} </u>\nНаименование: <u> {vehicle[1]} </u>\nМощность: <u> {vehicle[2]}кВт </u>\nВольтаж: <u> {vehicle[3]}В </u>\nМестоположение: <u> {vehicle[4]} </u>\nСтатус: <u> {vehicle[5]} </u></b>',
                                reply_markup = keyboards.ikb_vehicle())
         else: 
             bot.send_message(message.chat.id, text='Нет двигателей по выбранным критериям!', reply_markup = keyboards.kb_main_menu())
