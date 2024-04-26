@@ -4,7 +4,7 @@ import re
 
 # 10.21.199.88
 URL = 'http://10.21.199.88/php_app_query.php?query='
-BOT_TOKEN = '6956463991:AAHMWaqjs3ZiOlDGYcWnrRsFcgwsbklqUv8'
+BOT_TOKEN = '7002036471:AAGLhGH7k3Y3Ss77JkRalkgcitIEKoow8d4'
 
 
 def send_request(url):
