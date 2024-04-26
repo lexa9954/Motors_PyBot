@@ -45,7 +45,7 @@ def auth(message):
                 if message.text.isdigit():
                     tabel = message.text
                     user = cfg.select_user(tabel)
-                    if user[0].startswith('<br') or user is None: # Если пользователь не существует в log_auth_var
+                    if user is None: # Если пользователь не существует в log_auth_var
                         if cfg.check_user_true(tabel):
                             cfg.sign_up(chat_id, tabel)
                             auth(message)
@@ -261,7 +261,7 @@ def notify_admin(txt=''):
     while True:
         admin_list = cfg.get_admins()
         txt = cfg.notification_message()
-        if txt[0][0].startswith('<br') or txt is None: # Пустое текстовое оповещение
+        if txt is None: # Пустое текстовое оповещение
             pass
         else:
             print(re.sub(r'<[^>]*>', '', txt[0][0]).replace('\n', ' ')) # Убираем HTML теги и переносы для вывода в консоль в одну строку
