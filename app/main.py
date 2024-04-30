@@ -116,7 +116,8 @@ def menu_builder(message):
 #  """ФУНКЦИЯ ПОИСКА ПО ИНВЕНТАРНОМУ НОМЕРУ ДВИГАТЕЛЯ"""
 def find_by_number(message):
     inv_num = message.text
-    chat_id = message.chat.id
+    chat_id = str(message.chat.id)
+    print(chat_id)
     if inv_num.isdigit():
         vehicle = cfg.get_vehicle_by_number(inv_num)
         if len(vehicle[0][0]) < 100 or vehicle is not None: # Проверка на пустой ответ от БД
@@ -176,7 +177,8 @@ def find_by_power_second_step(message):
 
 #  """ФУНКЦИЯ ДЛЯ ПОИСКА ДВИГАТЕЛЕЙ ПО МОЩНОСТИ (вывод по заданным критериям)"""
 def find_by_power_final_step(message):
-    chat_id = message.chat.id
+    chat_id = str(message.chat.id)
+    print(chat_id)
     if status != 0:
         vehicle_list = cfg.get_vehicle_by_power(kw, status)
         if len(vehicle_list[0][0]) < 100 or vehicle_list is not None: # То же, что и в find_by_number()
