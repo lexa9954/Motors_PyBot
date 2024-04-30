@@ -116,10 +116,11 @@ def menu_builder(message):
 #  """ФУНКЦИЯ ПОИСКА ПО ИНВЕНТАРНОМУ НОМЕРУ ДВИГАТЕЛЯ"""
 def find_by_number(message):
     inv_num = message.text
+    chat_id = message.chat.id
     if inv_num.isdigit():
         vehicle = cfg.get_vehicle_by_number(inv_num)
         if len(vehicle[0][0]) < 100 or vehicle is not None: # Проверка на пустой ответ от БД
-            bot.send_photo(message.chat.id, 
+            bot.send_photo(chat_id,
                             #photo = open(f'{path.join(path.dirname(__file__), f'{cfg.get_image(vehicle[5])}')}', 'rb'), caption=f'<b>Инв. №: <u> F-{vehicle[0]} </u>\nНаименование: <u> {vehicle[1]} </u>\nМощность: <u> {vehicle[2]}кВт </u>\nВольтаж: <u> {vehicle[3]}В </u>\nМестоположение: <u> {vehicle[4]} </u>\nСтатус: <u> {vehicle[5]} </u></b>',
                            # Открытие файла с фотографией
                            photo=open(f'{cfg.get_image(vehicle[5])}', 'rb'),
@@ -175,13 +176,14 @@ def find_by_power_second_step(message):
 
 #  """ФУНКЦИЯ ДЛЯ ПОИСКА ДВИГАТЕЛЕЙ ПО МОЩНОСТИ (вывод по заданным критериям)"""
 def find_by_power_final_step(message):
+    chat_id = message.chat.id
     if status != 0:
         vehicle_list = cfg.get_vehicle_by_power(kw, status)
         if len(vehicle_list[0][0]) < 100 or vehicle_list is not None: # То же, что и в find_by_number()
             bot.send_message(message.chat.id, text=f'Список двигателей мощностью {kw} кВт:', reply_markup = keyboards.kb_main_menu())
             for vehicle in vehicle_list:
                 # open(f'{path.join(path.dirname(__file__), f'{cfg.get_image(vehicle[5])}')}', 'rb') - для localhost
-                bot.send_photo(message.chat.id,
+                bot.send_photo(chat_id,
                                photo=open(f'{cfg.get_image(vehicle[5])}', 'rb'),
                                caption=f'<b>Инв. №: <u> F-{vehicle[0]} </u>\nНаименование: <u> {vehicle[1]} </u>\nМощность: <u> {vehicle[2]}кВт </u>\nВольтаж: <u> {vehicle[3]}В </u>\nМестоположение: <u> {vehicle[4]} </u>\nСтатус: <u> {vehicle[5]} </u></b>',
                                reply_markup = keyboards.ikb_vehicle())
