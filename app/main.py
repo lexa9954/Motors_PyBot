@@ -31,7 +31,8 @@ def start(message):
 @bot.message_handler(content_types=['text'])
 def auth(message):
     chat_id = message.chat.id
-    if chat_id not in users:
+    print(users)
+    if str(chat_id) not in users:
         users[str(message.chat.id)] = {'status':'offline', 'last_activity_time': datetime.now().strftime("%H:%M:%S")}
         print(
             f"{datetime.now().date()} | {datetime.now().strftime('%H:%M:%S')} Пользователь (chat_id - {str(message.chat.id)}) добавлен в users (не из log_auth_var)")
