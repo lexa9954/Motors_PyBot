@@ -30,7 +30,7 @@ def start(message):
 # """АВТОРИЗАЦИЯ ПОЛЬЗОВАТЕЛЯ"""
 @bot.message_handler(content_types=['text'])
 def auth(message):
-    chat_id = str(message.chat.id)
+    chat_id = message.chat.id
     if chat_id not in users:
         users[str(message.chat.id)] = {'status':'offline', 'last_activity_time': datetime.now().strftime("%H:%M:%S")}
         print(
@@ -116,7 +116,7 @@ def menu_builder(message):
 #  """ФУНКЦИЯ ПОИСКА ПО ИНВЕНТАРНОМУ НОМЕРУ ДВИГАТЕЛЯ"""
 def find_by_number(message):
     inv_num = message.text
-    chat_id = str(message.chat.id)
+    chat_id = message.chat.id
     print(chat_id)
     if inv_num.isdigit():
         vehicle = cfg.get_vehicle_by_number(inv_num)
