@@ -30,10 +30,13 @@ def start(message):
 # """АВТОРИЗАЦИЯ ПОЛЬЗОВАТЕЛЯ"""
 @bot.message_handler(content_types=['text'])
 def auth(message):
-    chat_id = str(message.chat.id)
-    if chat_id not in users:
+    chat_id = message.chat.id
+    print(users)
+    if str(chat_id) not in users:
         users[str(message.chat.id)] = {'status':'offline', 'last_activity_time': datetime.now().strftime("%H:%M:%S")}
-        print(f'{datetime.now().date()} | {datetime.now().strftime('%H:%M:%S')} Пользователь (chat_id - {str(message.chat.id)}) добавлен в users (не из log_auth_var)')
+        print(
+            f"{datetime.now().date()} | {datetime.now().strftime('%H:%M:%S')} Пользователь (chat_id - {str(message.chat.id)}) добавлен в users (не из log_auth_var)")
+
     else:
         pass
     
@@ -43,7 +46,7 @@ def auth(message):
                 if message.text.isdigit():
                     tabel = message.text
                     user = cfg.select_user(tabel)
-                    if user[0].startswith('<br') or user is None: # Если пользователь не существует в log_auth_var
+                    if user is None: # Если пользователь не существует в log_auth_var
                         if cfg.check_user_true(tabel):
                             cfg.sign_up(chat_id, tabel)
                             auth(message)
@@ -52,7 +55,9 @@ def auth(message):
                             except cfg.telebot.apihelper.ApiTelegramException as e:
                                 pass
                             users[id]['status'] = 'online' # Задаем статус пользователя "онлайн"
-                            print(f'{datetime.now().date()} | {datetime.now().strftime('%H:%M:%S')} Подключился пользователь {" ".join(user)}')
+                            print(
+                                f"{datetime.now().date()} | {datetime.now().strftime('%H:%M:%S')} Подключился пользователь {' '.join(user)}")
+
                             break
                         else:
                             bot.send_message(message.chat.id, text='Такого работника нет в моей базе данных. Обратитесь к вашему руководству')
@@ -61,14 +66,17 @@ def auth(message):
                             cfg.add_chat_id(message.chat.id, tabel)
                             bot.send_message(message.chat.id,text=f"Здравствуйте, <b>{user[0]}!</b>\n\nВыберите услугу", reply_markup = keyboards.kb_main_menu())
                             users[id]['status'] = 'online'
-                            print(f'{datetime.now().date()} | {datetime.now().strftime('%H:%M:%S')} Подключился пользователь {" ".join(user)}')
+                            print(
+                                f"{datetime.now().date()} | {datetime.now().strftime('%H:%M:%S')} Подключился пользователь {' '.join(user)}")
+
                             break
                         else: bot.send_message(message.chat.id, text=f'У вас уже есть аккаунт. Не пытайтесь притворяться!')
                     else:
                         if user[2] == id:
                             bot.send_message(message.chat.id,text=f"Здравствуйте, <b>{user[0]}!</b>\n\nВыберите услугу", reply_markup = keyboards.kb_main_menu())
                             users[id]['status'] = 'online'
-                            print(f'{datetime.now().date()} | {datetime.now().strftime('%H:%M:%S')} Подключился пользователь ({" | ".join(user)})')
+                            print(
+                                f"{datetime.now().date()} | {datetime.now().strftime('%H:%M:%S')} Подключился пользователь ({' | '.join(user)})")
                             break
                         else:
                             bot.send_message(message.chat.id, text='Введите свой табельный номер!')
@@ -112,8 +120,10 @@ def find_by_number(message):
     if inv_num.isdigit():
         vehicle = cfg.get_vehicle_by_number(inv_num)
         if len(vehicle[0][0]) < 100 or vehicle is not None: # Проверка на пустой ответ от БД
-            bot.send_photo(message.chat.id, 
-                            photo = open(f'{path.join(path.dirname(__file__), f'{cfg.get_image(vehicle[5])}')}', 'rb'), caption=f'<b>Инв. №: <u> F-{vehicle[0]} </u>\nНаименование: <u> {vehicle[1]} </u>\nМощность: <u> {vehicle[2]}кВт </u>\nВольтаж: <u> {vehicle[3]}В </u>\nМестоположение: <u> {vehicle[4]} </u>\nСтатус: <u> {vehicle[5]} </u></b>', 
+            bot.send_photo(message.chat.id,
+                            # LOCALHOST // photo = open(f'{path.join(path.dirname(__file__), f'{cfg.get_image(vehicle[5])}')}', 'rb'), caption=f'<b>Инв. №: <u> F-{vehicle[0]} </u>\nНаименование: <u> {vehicle[1]} </u>\nМощность: <u> {vehicle[2]}кВт </u>\nВольтаж: <u> {vehicle[3]}В </u>\nМестоположение: <u> {vehicle[4]} </u>\nСтатус: <u> {vehicle[5]} </u></b>',
+                            photo=open(f'{cfg.get_image(vehicle[5])}', 'rb'),
+                            caption=f"<b>Инв. №: <u> F-{vehicle[0]} </u>\nНаименование: <u> {vehicle[1]} </u>\nМощность: <u> {vehicle[2]}кВт </u>\nВольтаж: <u> {vehicle[3]}В </u>\nМестоположение: <u> {vehicle[4]} </u>\nСтатус: <u> {vehicle[5]} </u></b>",
                             reply_markup=keyboards.ikb_vehicle())
             bot.send_message(message.chat.id, text='Отлично. Что дальше?', reply_markup = keyboards.search_criteria())
         else: 
@@ -163,14 +173,17 @@ def find_by_power_second_step(message):
 
 #  """ФУНКЦИЯ ДЛЯ ПОИСКА ДВИГАТЕЛЕЙ ПО МОЩНОСТИ (вывод по заданным критериям)"""
 def find_by_power_final_step(message):
+    chat_id = str(message.chat.id)
+    print(chat_id)
     if status != 0:
         vehicle_list = cfg.get_vehicle_by_power(kw, status)
         if len(vehicle_list[0][0]) < 100 or vehicle_list is not None: # То же, что и в find_by_number()
             bot.send_message(message.chat.id, text=f'Список двигателей мощностью {kw} кВт:', reply_markup = keyboards.kb_main_menu())
             for vehicle in vehicle_list:
                 # open(f'{path.join(path.dirname(__file__), f'{cfg.get_image(vehicle[5])}')}', 'rb') - для localhost
-                bot.send_photo(message.chat.id, 
-                               photo = open(f'{cfg.get_image(vehicle[5])}', 'rb'), caption=f'<b>Инв. №: <u> F-{vehicle[0]} </u>\nНаименование: <u> {vehicle[1]} </u>\nМощность: <u> {vehicle[2]}кВт </u>\nВольтаж: <u> {vehicle[3]}В </u>\nМестоположение: <u> {vehicle[4]} </u>\nСтатус: <u> {vehicle[5]} </u></b>', 
+                bot.send_photo(chat_id,
+                               photo=open(f'{cfg.get_image(vehicle[5])}', 'rb'),
+                               caption=f'<b>Инв. №: <u> F-{vehicle[0]} </u>\nНаименование: <u> {vehicle[1]} </u>\nМощность: <u> {vehicle[2]}кВт </u>\nВольтаж: <u> {vehicle[3]}В </u>\nМестоположение: <u> {vehicle[4]} </u>\nСтатус: <u> {vehicle[5]} </u></b>',
                                reply_markup = keyboards.ikb_vehicle())
         else: 
             bot.send_message(message.chat.id, text='Нет двигателей по выбранным критериям!', reply_markup = keyboards.kb_main_menu())
@@ -236,18 +249,19 @@ def get_more(call, message_id, old_text):
     status_btn = types.InlineKeyboardButton('Изменить статус', callback_data='change_status')
     markup.add(status_btn)
 
-    # open(f'{path.join(path.dirname(__file__), './img/engine1.jpg')}', "rb") - для localhost
-    media = types.InputMediaPhoto(open(f'{cfg.get_image('any_status')}', "rb"), caption=old_text+'\n'+more)
-    bot.edit_message_media(media , call.message.chat.id, message_id, reply_markup = markup)
+    # LOCALHOST // open(f'{path.join(path.dirname(__file__), './img/engine1.jpg')}', "rb")
+    media = types.InputMediaPhoto(open(f"{cfg.get_image('any_status')}", "rb"), caption=old_text + '\n' + more)
+    bot.edit_message_media(media, call.message.chat.id, message_id, reply_markup = markup)
 
 
 #  """ФУНКЦИЯ ОПОВЕЩЕНИЯ АДМИНИСТРАТОРОВ ОБ ИЗМЕНЕНИЯХ"""
 def notify_admin(txt=''):
-    print(f'{datetime.now().date()} | {datetime.now().strftime('%H:%M:%S')} БОТ ЗАПУЩЕН')
+    print(f"{datetime.now().date()} | {datetime.now().strftime('%H:%M:%S')} БОТ ЗАПУЩЕН")
+
     while True:
         admin_list = cfg.get_admins()
         txt = cfg.notification_message()
-        if txt[0][0].startswith('<br') or txt is None: # Пустое текстовое оповещение
+        if txt is None: # Пустое текстовое оповещение
             pass
         else:
             print(re.sub(r'<[^>]*>', '', txt[0][0]).replace('\n', ' ')) # Убираем HTML теги и переносы для вывода в консоль в одну строку
@@ -258,7 +272,9 @@ def notify_admin(txt=''):
                     for m in txt:
                         bot.send_message(admin[4], text=m[0])
                 except:
-                    print(f'{datetime.now().date()} | {datetime.now().strftime('%H:%M:%S')} ERROR: {admin[1]} {admin[2]} не оповещен. Отсутствует или неверно указан chat_id в в таблице log_auth_var')
+                    print(
+                        f"{datetime.now().date()} | {datetime.now().strftime('%H:%M:%S')} ERROR: {admin[1]} {admin[2]} не оповещен. Отсутствует или неверно указан chat_id в таблице log_auth_var")
+
                     continue
 
         check_and_disconnect_inactive_users()
@@ -275,7 +291,7 @@ def check_and_disconnect_inactive_users():
             time_difference = datetime.combine(datetime.today(), current_time) - datetime.combine(datetime.today(), last_activity_time)
             if time_difference > inactive_timeout:
                 activity['status'] = 'offline'
-                print(f'{datetime.now().date()} | {datetime.now().strftime('%H:%M:%S')} Пользователь {user} отключен по причине неактивности')
+                print(f"{datetime.now().date()} | {datetime.now().strftime('%H:%M:%S')} Пользователь {user} отключен по причине неактивности")
 
 
 #  """ФУНКЦИЯ ОБНОВЛЕНИЯ ПОСЛЕДНЕЙ АКТИВНОСТИ ПОЛЬЗОВАТЕЛЯ"""

@@ -39,7 +39,7 @@ def ikb_vehicle():
     markup = types.InlineKeyboardMarkup()
     item1 = types.InlineKeyboardButton('Изменить статус', callback_data='change_status')
     item2 = types.InlineKeyboardButton('Подробнее', callback_data='get_more')
-    markup.add(item1, '''item2''')
+    markup.add(item1) # ,item2
 
     return markup
 

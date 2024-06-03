@@ -2,9 +2,12 @@ import requests
 import telebot
 import re
 
+from telebot import apihelper
+
 # 10.21.199.88
 URL = 'http://10.21.199.88/php_app_query.php?query='
 BOT_TOKEN = '6956463991:AAHMWaqjs3ZiOlDGYcWnrRsFcgwsbklqUv8'
+apihelper.proxy = {'https':'amt_portal:Welcome%4012345@10.21.199.198:8080'}
 
 
 def send_request(url):
@@ -207,7 +210,7 @@ def check_user_true(tabel):
 
 #  """ДОБАВЛЕНИЕ ЗАПИСИ ДЛЯ ОПОВЕЩЕНИЯ АДМИНИСТРАТОРОВ"""
 def notification_message():
-    txt = execute_query(URL+'SELECT text FROM telegram_commands WHERE viewed = 0', 1)
+    txt = execute_query(URL+f'SELECT text FROM telegram_commands WHERE viewed = 0 AND bot_id = {BOT_TOKEN}', 1)
 
     execute_query(URL+'UPDATE telegram_commands SET viewed = 1 WHERE viewed = 0', 1)
 
