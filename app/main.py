@@ -260,11 +260,14 @@ def notify_admin(txt=''):
     while True:
         admin_list = cfg.get_admins()
         txt = cfg.notification_message()
+        print(txt)
+        print(txt[0][0])
         if txt is None: # Пустое текстовое оповещение
+            print('ПУСТО ТУТ')
             pass
         else:
             print(re.sub(r'<[^>]*>', '', txt[0][0]).replace('\n', ' ')) # Убираем HTML теги и переносы для вывода в консоль в одну строку
-            
+            print(txt[0][0])
             for admin in admin_list:
                 try:
                     for m in txt:
