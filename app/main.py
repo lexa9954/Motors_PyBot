@@ -264,7 +264,7 @@ def notify_admin(txt=''):
             print('Пустое оповещение')
             pass
         else:
-            print(re.sub(r'<[^>]*>', '', txt[0][0]).replace('\n', ' ')) # Убираем HTML теги и переносы для вывода в консоль в одну строку
+            #print(re.sub(r'<[^>]*>', '', txt[0][0]).replace('\n', ' ')) # Убираем HTML теги и переносы для вывода в консоль в одну строку
             print(txt)
             for admin in admin_list:
                 try:
