@@ -31,7 +31,7 @@ def start(message):
 @bot.message_handler(content_types=['text'])
 def auth(message):
     chat_id = message.chat.id
-    print(users)
+    # print(users)
     if str(chat_id) not in users:
         users[str(message.chat.id)] = {'status':'offline', 'last_activity_time': datetime.now().strftime("%H:%M:%S")}
         print(
@@ -46,6 +46,8 @@ def auth(message):
                 if message.text.isdigit():
                     tabel = message.text
                     user = cfg.select_user(tabel)
+                    print(user)
+                    print(message)
                     if user is None: # Если пользователь не существует в log_auth_var
                         if cfg.check_user_true(tabel):
                             cfg.sign_up(chat_id, tabel)
