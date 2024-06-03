@@ -30,9 +30,8 @@ def start(message):
 # """АВТОРИЗАЦИЯ ПОЛЬЗОВАТЕЛЯ"""
 @bot.message_handler(content_types=['text'])
 def auth(message):
-    chat_id = message.chat.id
     print(users)
-    if str(chat_id) not in users:
+    if str(message.chat.id) not in users:
         users[str(message.chat.id)] = {'status':'offline', 'last_activity_time': datetime.now().strftime("%H:%M:%S")}
         print(
             f"{datetime.now().date()} | {datetime.now().strftime('%H:%M:%S')} Пользователь (chat_id - {str(message.chat.id)}) добавлен в users (не из log_auth_var)")
@@ -40,25 +39,14 @@ def auth(message):
         pass
     
     for id in users:
-        print(id)
-        if str(chat_id) == id:
-            print('11111')
-            print(users)
-            print(chat_id)
-            print(id)
+        if str(message.chat.id) == id:
             if users[id]['status'] == 'offline':
-                print(users)
-                print(chat_id)
-                print(users[id]['status'])
-                print('22222')
                 if message.text.isdigit():
                     tabel = message.text
                     user = cfg.select_user(tabel)
-                    print(user)
-                    print(message)
                     if user is None: # Если пользователь не существует в log_auth_var
                         if cfg.check_user_true(tabel):
-                            cfg.sign_up(chat_id, tabel)
+                            cfg.sign_up(message.chat.id, tabel)
                             auth(message)
                             try:
                                 bot.send_message(message.chat.id, text=f"Здравствуйте, <b>{user[0]}!</b>\n\nВыберите услугу", reply_markup=keyboards.kb_main_menu())
@@ -72,7 +60,7 @@ def auth(message):
                         else:
                             bot.send_message(message.chat.id, text='Такого работника нет в моей базе данных. Обратитесь к вашему руководству')
                     elif user[2] == '': # Если chat_id пустой
-                        if cfg.check_chat_id(chat_id) == False:
+                        if cfg.check_chat_id(message.chat.id) == False:
                             cfg.add_chat_id(message.chat.id, tabel)
                             bot.send_message(message.chat.id,text=f"Здравствуйте, <b>{user[0]}!</b>\n\nВыберите услугу", reply_markup = keyboards.kb_main_menu())
                             users[id]['status'] = 'online'
@@ -183,15 +171,14 @@ def find_by_power_second_step(message):
 
 #  """ФУНКЦИЯ ДЛЯ ПОИСКА ДВИГАТЕЛЕЙ ПО МОЩНОСТИ (вывод по заданным критериям)"""
 def find_by_power_final_step(message):
-    chat_id = str(message.chat.id)
-    print(chat_id)
+    print(message.chat.id)
     if status != 0:
         vehicle_list = cfg.get_vehicle_by_power(kw, status)
         if len(vehicle_list[0][0]) < 100 or vehicle_list is not None: # То же, что и в find_by_number()
             bot.send_message(message.chat.id, text=f'Список двигателей мощностью {kw} кВт:', reply_markup = keyboards.kb_main_menu())
             for vehicle in vehicle_list:
                 # open(f'{path.join(path.dirname(__file__), f'{cfg.get_image(vehicle[5])}')}', 'rb') - для localhost
-                bot.send_photo(chat_id,
+                bot.send_photo(message.chat.id,
                                photo=open(f'{cfg.get_image(vehicle[5])}', 'rb'),
                                caption=f'<b>Инв. №: <u> F-{vehicle[0]} </u>\nНаименование: <u> {vehicle[1]} </u>\nМощность: <u> {vehicle[2]}кВт </u>\nВольтаж: <u> {vehicle[3]}В </u>\nМестоположение: <u> {vehicle[4]} </u>\nСтатус: <u> {vehicle[5]} </u></b>',
                                reply_markup = keyboards.ikb_vehicle())
