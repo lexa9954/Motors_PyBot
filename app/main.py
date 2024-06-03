@@ -41,7 +41,7 @@ def auth(message):
     
     for id in users:
         print(id)
-        if chat_id == id:
+        if str(chat_id) == id:
             print('11111')
             print(users)
             print(chat_id)
