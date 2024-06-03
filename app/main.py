@@ -264,12 +264,13 @@ def notify_admin(txt=''):
             pass
         else:
             print(re.sub(r'<[^>]*>', '', txt[0][0]).replace('\n', ' ')) # Убираем HTML теги и переносы для вывода в консоль в одну строку
-            pass
             
             for admin in admin_list:
                 try:
                     for m in txt:
                         bot.send_message(admin[4], text=m[0])
+                        print(admin[4])
+                        print(m[0])
                 except:
                     print(
                         f"{datetime.now().date()} | {datetime.now().strftime('%H:%M:%S')} ERROR: {admin[1]} {admin[2]} не оповещен. Отсутствует или неверно указан chat_id в таблице log_auth_var")

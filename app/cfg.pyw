@@ -157,7 +157,7 @@ def insert_history_status(inv_num, chat_id, status_id, state):
 
 #  """ДОБАВЛЕНИЕ ЗАПИСИ С ОПОВЕЩЕНИЕМ"""
 def insert_telegram_commands(text):
-    query = f'''INSERT INTO warehousebm_new.telegram_commands (bot_id, text)
+    query = f'''INSERT INTO telegram_commands (bot_id, text)
                 VALUES ('{BOT_TOKEN}','{text}')'''
     response = execute_query_read(URL+query, 1)
 
@@ -210,8 +210,8 @@ def check_user_true(tabel):
 
 #  """ДОБАВЛЕНИЕ ЗАПИСИ ДЛЯ ОПОВЕЩЕНИЯ АДМИНИСТРАТОРОВ"""
 def notification_message():
-    txt = execute_query(URL+f'SELECT text FROM warehousebm_new.telegram_commands WHERE viewed = 0 AND bot_id = {BOT_TOKEN}', 1)
+    txt = execute_query(URL+f'SELECT text FROM telegram_commands WHERE viewed = 0 AND bot_id = {BOT_TOKEN}', 1)
 
-    execute_query(URL+'UPDATE warehousebm_new.telegram_commands SET viewed = 1 WHERE viewed = 0', 1)
+    execute_query(URL+'UPDATE telegram_commands SET viewed = 1 WHERE viewed = 0', 1)
 
     return txt
