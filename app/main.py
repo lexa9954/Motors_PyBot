@@ -36,13 +36,20 @@ def auth(message):
         users[str(message.chat.id)] = {'status':'offline', 'last_activity_time': datetime.now().strftime("%H:%M:%S")}
         print(
             f"{datetime.now().date()} | {datetime.now().strftime('%H:%M:%S')} Пользователь (chat_id - {str(message.chat.id)}) добавлен в users (не из log_auth_var)")
-
     else:
         pass
     
     for id in users:
         if chat_id == id:
+            print('11111')
+            print(users)
+            print(chat_id)
+            print(id)
             if users[id]['status'] == 'offline':
+                print(users)
+                print(chat_id)
+                print(users[id]['status'])
+                print('22222')
                 if message.text.isdigit():
                     tabel = message.text
                     user = cfg.select_user(tabel)
