@@ -264,16 +264,11 @@ def notify_admin(txt=''):
             print('Пустое оповещение')
             pass
         else:
-            #print(re.sub(r'<[^>]*>', '', txt[0][0]).replace('\n', ' ')) # Убираем HTML теги и переносы для вывода в консоль в одну строку
-            print(txt)
+            print(re.sub(r'<[^>]*>', '', txt[0][0]).replace('\n', ' ')) # Убираем HTML теги и переносы для вывода в консоль в одну строку
             for admin in admin_list:
                 try:
-                    print(admin)
                     for m in txt:
-                        print(m)
                         bot.send_message(admin[4], text=m[0])
-                        print(admin[4])
-                        print(m[0])
                 except:
                     print(
                         f"{datetime.now().date()} | {datetime.now().strftime('%H:%M:%S')} ERROR: {admin[1]} {admin[2]} не оповещен. Отсутствует или неверно указан chat_id в таблице log_auth_var")
