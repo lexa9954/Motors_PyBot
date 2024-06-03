@@ -141,7 +141,8 @@ def find_by_power_first_step(message):
     kw = message.text
     if kw.replace('.','',1).isdigit():
         msg = bot.send_message(message.chat.id, text='Выберите необходимый статус', reply_markup = keyboards.kb_search_by_status())
-        bot.register_next_step_handler(msg, find_by_power_second_step(message, kw))
+        #bot.register_next_step_handler(msg, find_by_power_second_step)
+        find_by_power_second_step(message, kw)
     else:
         if message.text == '🔙 Назад':
             bot.send_message(message.chat.id, text='Назад', reply_markup = keyboards.kb_main_menu())
@@ -171,7 +172,7 @@ def find_by_power_second_step(message, kw):
 
 
 #  """ФУНКЦИЯ ДЛЯ ПОИСКА ДВИГАТЕЛЕЙ ПО МОЩНОСТИ (вывод по заданным критериям)"""
-def find_by_power_final_step(message, status, kwt=0):
+def find_by_power_final_step(message, status, kwt):
     print(message.chat.id)
     if status != 0:
         vehicle_list = cfg.get_vehicle_by_power(kwt, status)
