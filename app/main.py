@@ -152,7 +152,7 @@ def find_by_power_first_step(message):
 
 #  """ФУНКЦИЯ ДЛЯ ПОИСКА ДВИГАТЕЛЕЙ ПО МОЩНОСТИ (выбор статуса)"""
 def find_by_power_second_step(message):
-    global status
+    #global status
     if message.text == 'Установленные':
         status = 5
     elif message.text == 'В резерве':
@@ -166,11 +166,11 @@ def find_by_power_second_step(message):
     else:
         status = 0
 
-    find_by_power_final_step(message)
+    find_by_power_final_step(message, status)
 
 
 #  """ФУНКЦИЯ ДЛЯ ПОИСКА ДВИГАТЕЛЕЙ ПО МОЩНОСТИ (вывод по заданным критериям)"""
-def find_by_power_final_step(message):
+def find_by_power_final_step(message, status):
     print(message.chat.id)
     if status != 0:
         vehicle_list = cfg.get_vehicle_by_power(kw, status)
