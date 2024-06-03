@@ -210,7 +210,7 @@ def check_user_true(tabel):
 
 #  """ДОБАВЛЕНИЕ ЗАПИСИ ДЛЯ ОПОВЕЩЕНИЯ АДМИНИСТРАТОРОВ"""
 def notification_message():
-    txt = execute_query(URL+f'SELECT text FROM warehousebm.telegram_commands WHERE viewed = 0 AND bot_id = {BOT_TOKEN}', 1)
+    txt = execute_query(URL+f'SELECT text FROM warehousebm.telegram_commands WHERE viewed = 0 AND bot_id = "{BOT_TOKEN}"', 1)
     print(txt)
     print('-------')
     return txt
