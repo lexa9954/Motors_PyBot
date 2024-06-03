@@ -260,9 +260,8 @@ def notify_admin(txt=''):
     while True:
         admin_list = cfg.get_admins()
         txt = cfg.notification_message()
-        print(txt)
         if txt is None: # Пустое текстовое оповещение
-            print('ПУСТО ТУТ')
+            print('Пустое оповещение')
             pass
         else:
             print(re.sub(r'<[^>]*>', '', txt[0][0]).replace('\n', ' ')) # Убираем HTML теги и переносы для вывода в консоль в одну строку
@@ -280,6 +279,8 @@ def notify_admin(txt=''):
                         f"{datetime.now().date()} | {datetime.now().strftime('%H:%M:%S')} ERROR: {admin[1]} {admin[2]} не оповещен. Отсутствует или неверно указан chat_id в таблице log_auth_var")
 
                     continue
+            
+            cfg.notification_viewed()
 
         check_and_disconnect_inactive_users()
         time.sleep(15) # Время проверки новых сообщений/изменений

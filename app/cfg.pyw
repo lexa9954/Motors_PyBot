@@ -211,7 +211,7 @@ def check_user_true(tabel):
 #  """ДОБАВЛЕНИЕ ЗАПИСИ ДЛЯ ОПОВЕЩЕНИЯ АДМИНИСТРАТОРОВ"""
 def notification_message():
     txt = execute_query(URL+f'SELECT text FROM telegram_commands WHERE viewed = 0 AND bot_id = {BOT_TOKEN}', 1)
-
-    execute_query(URL+'UPDATE telegram_commands SET viewed = 1 WHERE viewed = 0', 1)
-
     return txt
+
+def notification_viewed():
+    execute_query(URL+'UPDATE telegram_commands SET viewed = 1 WHERE viewed = 0', 1)
