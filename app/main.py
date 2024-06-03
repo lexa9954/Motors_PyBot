@@ -154,30 +154,36 @@ def find_by_power_first_step(message):
 #  """ФУНКЦИЯ ДЛЯ ПОИСКА ДВИГАТЕЛЕЙ ПО МОЩНОСТИ (выбор статуса)"""
 def find_by_power_second_step(message, kw):
     #global status
-    kwt = kw
+    kw = kw
     if message.text == 'Установленные':
         status = 5
+        find_by_power_final_step(message, status, kw)
     elif message.text == 'В резерве':
         status = 1
+        find_by_power_final_step(message, status, kw)
     elif message.text == 'На ремонте':
         status = 10
+        find_by_power_final_step(message, status, kw)
     elif message.text == 'Списанные':
         status = 6
+        find_by_power_final_step(message, status, kw)
     elif message.text == 'Все':
         status = '*'
+        find_by_power_final_step(message, status, kw)
     else:
         status = 0
+        find_by_power_final_step(message, status, kw)
 
-    find_by_power_final_step(message, status, kwt)
+    
 
 
 #  """ФУНКЦИЯ ДЛЯ ПОИСКА ДВИГАТЕЛЕЙ ПО МОЩНОСТИ (вывод по заданным критериям)"""
-def find_by_power_final_step(message, status, kwt):
+def find_by_power_final_step(message, status, kw):
     print(message.chat.id)
     if status != 0:
-        vehicle_list = cfg.get_vehicle_by_power(kwt, status)
+        vehicle_list = cfg.get_vehicle_by_power(kw, status)
         if vehicle_list is not None: # То же, что и в find_by_number()
-            bot.send_message(message.chat.id, text=f'Список двигателей мощностью {kwt} кВт:', reply_markup = keyboards.kb_main_menu())
+            bot.send_message(message.chat.id, text=f'Список двигателей мощностью {kw} кВт:', reply_markup = keyboards.kb_main_menu())
             for vehicle in vehicle_list:
                 # open(f'{path.join(path.dirname(__file__), f'{cfg.get_image(vehicle[5])}')}', 'rb') - для localhost
                 bot.send_photo(message.chat.id,
@@ -188,7 +194,8 @@ def find_by_power_final_step(message, status, kwt):
             bot.send_message(message.chat.id, text='Нет двигателей по выбранным критериям!', reply_markup = keyboards.kb_main_menu())
     else:
         msg = bot.send_message(message.chat.id, text='Я тебя не понимаю. Выберите критерий из всплывающей клавиатуры')
-        bot.register_next_step_handler(msg, find_by_power_second_step)
+        #bot.register_next_step_handler(msg, find_by_power_second_step)
+        find_by_power_second_step(message, kw)
 
 
 #  """КОЛЛБЕКИ НА ИЗМЕНЕНИЕ СТАТУСА ДВИГАТЕЛЯ"""
