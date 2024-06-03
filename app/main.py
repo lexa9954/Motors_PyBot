@@ -137,11 +137,11 @@ def find_by_number(message):
 
 #  """ФУНКЦИЯ ДЛЯ ПОИСКА ДВИГАТЕЛЕЙ ПО МОЩНОСТИ (ввод мощности)"""
 def find_by_power_first_step(message):
-    global kw
+    #global kw
     kw = message.text
     if kw.replace('.','',1).isdigit():
         msg = bot.send_message(message.chat.id, text='Выберите необходимый статус', reply_markup = keyboards.kb_search_by_status())
-        bot.register_next_step_handler(msg, find_by_power_second_step)
+        bot.register_next_step_handler(msg, find_by_power_second_step(message, kw))
     else:
         if message.text == '🔙 Назад':
             bot.send_message(message.chat.id, text='Назад', reply_markup = keyboards.kb_main_menu())
@@ -151,8 +151,9 @@ def find_by_power_first_step(message):
 
 
 #  """ФУНКЦИЯ ДЛЯ ПОИСКА ДВИГАТЕЛЕЙ ПО МОЩНОСТИ (выбор статуса)"""
-def find_by_power_second_step(message):
+def find_by_power_second_step(message, kw):
     #global status
+    kwt = kw
     if message.text == 'Установленные':
         status = 5
     elif message.text == 'В резерве':
@@ -166,16 +167,16 @@ def find_by_power_second_step(message):
     else:
         status = 0
 
-    find_by_power_final_step(message, status)
+    find_by_power_final_step(message, status, kwt)
 
 
 #  """ФУНКЦИЯ ДЛЯ ПОИСКА ДВИГАТЕЛЕЙ ПО МОЩНОСТИ (вывод по заданным критериям)"""
-def find_by_power_final_step(message, status):
+def find_by_power_final_step(message, status, kwt=0):
     print(message.chat.id)
     if status != 0:
-        vehicle_list = cfg.get_vehicle_by_power(kw, status)
-        if len(vehicle_list[0][0]) < 100 or vehicle_list is not None: # То же, что и в find_by_number()
-            bot.send_message(message.chat.id, text=f'Список двигателей мощностью {kw} кВт:', reply_markup = keyboards.kb_main_menu())
+        vehicle_list = cfg.get_vehicle_by_power(kwt, status)
+        if vehicle_list is not None: # То же, что и в find_by_number()
+            bot.send_message(message.chat.id, text=f'Список двигателей мощностью {kwt} кВт:', reply_markup = keyboards.kb_main_menu())
             for vehicle in vehicle_list:
                 # open(f'{path.join(path.dirname(__file__), f'{cfg.get_image(vehicle[5])}')}', 'rb') - для localhost
                 bot.send_photo(message.chat.id,
