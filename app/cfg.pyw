@@ -6,7 +6,7 @@ from telebot import apihelper
 
 # 10.21.199.88
 URL = 'http://10.21.199.88/php_app_query.php?query='
-BOT_TOKEN = '6956463991:AAHMWaqjs3ZiOlDGYcWnrRsFcgwsbklqUv8'
+BOT_TOKEN = '7002036471:AAGLhGH7k3Y3Ss77JkRalkgcitIEKoow8d4'
 apihelper.proxy = {'https':'amt_portal:Welcome%4012345@10.21.199.198:8080'}
 
 
