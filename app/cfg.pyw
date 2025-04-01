@@ -1,11 +1,15 @@
 import requests
 import telebot
+import re
+
 from telebot import apihelper
 
-
+# 10.21.199.88
 URL = 'http://10.21.199.88/php_app_query.php?query='
-BOT_TOKEN = '6956463991:AAHMWaqjs3ZiOlDGYcWnrRsFcgwsbklqUv8'
-apihelper.proxy = {'https':'socks5://198.199.120.102:1080'}
+BOT_TOKEN_MOTORS = '7002036471:AAGLhGH7k3Y3Ss77JkRalkgcitIEKoow8d4'
+BOT_TOKEN_EXAM = '6514922680:AAHJJ5Hli31BB90iVfMz7BjmaWDwxgY_MkA'
+BOT_TOKEN_AC = '7177477965:AAFnUG95_Sv30zZk1iOOXY-4wYfs7hhbfZA'
+apihelper.proxy = {'https':'amt_portal:Welcome%4012345@10.21.199.198:8080'}
 
 
 def send_request(url):
@@ -17,14 +21,26 @@ def send_request(url):
         print(f'HTTP error occurred: {http_err}')  # Например, "404 Not Found" или "500 Internal Server Error".
     except requests.exceptions.ConnectionError:
         print('Что-то пошло не так, возможно отсутствует интернет соединение.')
+
     except Exception as err:
         print(f'Произошла ошибка: {err}')
     return None
 
+
+
+
 def execute_query(query, col):
-    str_response = send_request(query)  # Используем функцию send_request, определенную ранее
+    # Удаляем лишние пробелы и переносы строк
+    cleaned_query = query.replace('\n', ' ').replace('\r', '').strip()
+
+    print("Отправляем запрос на сервер:", cleaned_query)  # Логирование запроса
+
+    str_response = send_request(cleaned_query)
     if not str_response:
+        print("Ошибка: пустой ответ от send_request.")
         return None
+
+    #print("Получен ответ от сервера:", str_response)  # Логирование ответа
 
     rows = str_response.split('&')
     response = []
@@ -32,21 +48,33 @@ def execute_query(query, col):
     for row in rows:
         if row:  # проверяем, не пустая ли строка
             col_row = row.split(';')
+            # Если данных меньше, чем указано в `col`, заполняем недостающие элементы пустыми строками
             response.append(col_row[:col] if len(col_row) >= col else col_row + [''] * (col - len(col_row)))
 
+    if not response:
+        print("Ошибка: данные после обработки отсутствуют.")
     return response if response else None
 
+
 def execute_query_read(query, col):
-    # предполагается, что `query` - это URL для запроса
+    # query - это URL для запроса
     str_response = send_request(query)
-    response = str_response.split(';')
-
-    if str_response == "":
-        return None
-    else:
+    if str_response:
+        response = str_response.split(';')
+        if len(response) > col:
+            response = response[:col]
         return response
-    
+    else:
+        return []
 
+#  """ПОЛУЧЕНИЕ СПИСКА ПОЛЬЗОВАТЕЛЕЙ БОТА"""
+def get_auth_tabel():
+    query = f'''SELECT tabnumbersap, chat_id FROM peoples INNER JOIN log_auth_var ON peoples.id = log_auth_var.id_people'''
+    response = execute_query(URL+query, 2)
+    return response
+
+
+#  """ПЕРЕДАЧА ПУТЕЙ КАРТИНОК СТАТУСОВ ДВИГАТЕЛЕЙ"""
 def get_image(status):
     if status == 'Установлен':
         return './img/install.png'
@@ -63,6 +91,7 @@ def get_image(status):
     else: return './img/engine1.jpg'
 
 
+#  """ВЫБОР КОНКРЕТНОГО ПОЛЬЗОВАТЕЛЯ ПО ВВЕДЕННОМУ ТАБЕЛЬНОМУ НОМЕРУ (для авторизации)"""
 def select_user(tabnumber):
     query = f'''SELECT first_name, tabnumbersap, chat_id, permission
                         FROM peoples
@@ -73,14 +102,22 @@ def select_user(tabnumber):
     return response
     
 
+#  """ПОЛУЧЕНИЕ СПИСКА АДМИНИСТРАТОРОВ"""
 def get_admins():
     query = '''SELECT peoples.id, first_name, last_name, tabnumbersap, chat_id FROM peoples 
                         INNER JOIN log_auth_var ON peoples.id = log_auth_var.id_people 
                         WHERE permission="ADMIN"'''
     response = execute_query(URL+query, 5)
     return response
+#  """ПОЛУЧЕНИЕ СПИСКА ПОЛЬЗОВАТЕЛЕЙ"""
+def get_people():
+    query = '''SELECT peoples.id, first_name, last_name, tabnumbersap, chat_id, str_org_structure FROM peoples 
+                        INNER JOIN log_auth_var ON peoples.id = log_auth_var.id_people
+                        WHERE permission!="ADMIN" OR permission IS NULL;'''
+    response = execute_query(URL+query, 6)
+    return response
 
-
+#  """ПОЛУЧЕНИЕ ИНФОРМАЦИИ О ДВИГАТЕЛЕ ПО ИНВЕНТАРНОМУ НОМЕРУ"""
 def get_vehicle_by_number(inv_num):
     query = f'''SELECT inventory_num, name_mat, power, voltage, aggregete_name, status_name FROM materials
                         INNER JOIN motors ON motors.id_mat = materials.id
@@ -92,6 +129,7 @@ def get_vehicle_by_number(inv_num):
     return response
 
 
+#  """ПОЛУЧЕНИЕ ИНФОРМАЦИИ О ДВИГАТЕЛЕ ПО МОЩНОСТИ И СТАТУСУ"""
 def get_vehicle_by_power(kw, status):
     if status == '*':
         query = f'''SELECT inventory_num, name_mat, power, voltage, aggregete_name, status_name FROM materials
@@ -111,6 +149,7 @@ def get_vehicle_by_power(kw, status):
     return response
 
 
+#  """ИЗМЕНЕНИЕ СТАТУСА ДВИГАТЕЛЯ"""
 def change_status(inv_num, status):
     query = f'''UPDATE motor_objects
                         INNER JOIN motors ON motors.id = motor_objects.motor_id
@@ -121,6 +160,7 @@ def change_status(inv_num, status):
     return response
 
 
+#  """ДОБАВЛЕНИЕ ЗАПИСИ В ИСТОРИЮ ИЗМЕНЕНИЙ ДВИГАТЕЛЕЙ"""
 def insert_history_status(inv_num, chat_id, status_id, state):
     motorObj_id = execute_query_read(URL+f'SELECT id FROM motor_objects WHERE inventory_num = {inv_num}', 1)
     people_id = execute_query_read(URL+f'SELECT id_people FROM log_auth_var WHERE chat_id = {chat_id}', 1)
@@ -132,14 +172,13 @@ def insert_history_status(inv_num, chat_id, status_id, state):
     status = execute_query_read(URL+f'SELECT status_name FROM all_status WHERE id = {status_id}', 1)
     time = execute_query_read(URL+f'SELECT CURRENT_DATE(), CURRENT_TIME()', 2)
 
-    text = f'{time[0]} | {time[1]}\n<b>{people[0]} {people[1]}</b>\nустановил статус двигателя <u>F-{inv_num}</u> на "{status[0]}"'
-    insert_telegram_commands(text)
-    print(text)
-    print('-------------------------------------')
+    text = f'\n<b>{people[0]} {people[1]}</b>\nустановил статус двигателя <u>F-{inv_num}</u> на "{status[0]}"'
+    insert_telegram_commands(re.sub(r'<[^>]*>', '', f'{time[0]} | {time[1]}' + text))
     
     return response
 
 
+#  """ДОБАВЛЕНИЕ ЗАПИСИ С ОПОВЕЩЕНИЕМ"""
 def insert_telegram_commands(text):
     query = f'''INSERT INTO telegram_commands (bot_id, text)
                 VALUES ('{BOT_TOKEN}','{text}')'''
@@ -148,6 +187,7 @@ def insert_telegram_commands(text):
     return response
     
 
+#  """РЕГИСТРАЦИЯ ПОЛЬЗОВАТЕЛЯ ПУТЁМ ДОБАВЛЕНИЯ ЗАПИСИ В ТАБЛИЦУ log_auth_var"""
 def sign_up(chat_id, tabel):
     people_id_list = execute_query(URL+f'SELECT id_people, chat_id FROM log_auth_var', 2)
     user_id = execute_query_read(URL+f'SELECT id FROM peoples WHERE tabnumbersap = {tabel}', 1)
@@ -160,6 +200,7 @@ def sign_up(chat_id, tabel):
             break
 
 
+#  """ДОБАВЛЕНИЕ chat_id К СУЩЕСТВУЮЩЕМУ ПОЛЬЗОВАТЕЛЮ"""
 def add_chat_id(chat_id, tabel):
     query = f'''UPDATE log_auth_var
                         INNER JOIN peoples ON peoples.id = log_auth_var.id_people
@@ -170,7 +211,8 @@ def add_chat_id(chat_id, tabel):
     return response
 
 
-def check_chat_id(chat_id): # Проверка есть ли chat_id пользователя в БД
+#  """ПРОВЕРКА НА ПРИСВОЕННЫЙ chat_id ПОЛЬЗОВАТЕЛЮ"""
+def check_chat_id(chat_id):
     chat_ids = execute_query(URL+f'SELECT chat_id FROM log_auth_var', 1)
     
     for id in chat_ids:
@@ -180,17 +222,24 @@ def check_chat_id(chat_id): # Проверка есть ли chat_id польз�
     return False
 
 
-def check_user_true(tabel):  # Проверка существует ли вообще пользователь
-    query = f'''SELECT tabnumbersap FROM peoples WHERE tabel = {tabel}'''
+#  """ПРОВЕРКА НА СУЩЕСТВОВАНИЕ ПОЛЬЗОВАТЕЛЯ"""
+def check_user_true(tabel):
+    query = f'''SELECT tabnumbersap FROM peoples WHERE tabnumbersap = {tabel}'''
     response = execute_query(URL+query, 1)
 
-    if response[0][0].startswith('<br'):
+    if response[0][0].startswith('<br') or response is None:
         return False
     else: return True
 
-def notification_message():
-    txt = execute_query(URL+'SELECT text FROM telegram_commands WHERE viewed = 0', 1)
-
-    execute_query(URL+'UPDATE telegram_commands SET viewed = 1 WHERE viewed = 0', 1)
-
+#  """ДОБАВЛЕНИЕ ЗАПИСИ ДЛЯ ОПОВЕЩЕНИЯ АДМИНИСТРАТОРОВ"""
+def notification_message(bot):
+    if bot == "exam":
+        txt = execute_query(URL+f'SELECT text FROM warehousebm.telegram_commands WHERE viewed = 0 AND bot_id = "{BOT_TOKEN_EXAM}"', 1)
+    elif bot == "motors":
+        txt = execute_query(URL + f'SELECT text FROM warehousebm.telegram_commands WHERE viewed = 0 AND bot_id = "{BOT_TOKEN_MOTORS}"', 1)
+    elif bot == "ac":
+        txt = execute_query(URL + f'SELECT text FROM warehousebm.telegram_commands WHERE viewed = 0 AND bot_id = "{BOT_TOKEN_AC}"', 1)
     return txt
+# '''ИЗМЕНЕНИЕ СТАТУСА ОТПРАВЛЕННОГО СООБЩЕНИЯ НА viewed = 1'''
+def notification_viewed():
+     execute_query(URL+'UPDATE telegram_commands SET viewed = 1 WHERE viewed = 0', 1)

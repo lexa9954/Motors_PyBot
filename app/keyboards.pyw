@@ -8,6 +8,8 @@ def kb_main_menu():
 
     return markup
 
+
+
 def search_criteria():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1, one_time_keyboard=True)
     item1 = types.KeyboardButton('Поиск по инвентарному номеру')
@@ -39,7 +41,7 @@ def ikb_vehicle():
     markup = types.InlineKeyboardMarkup()
     item1 = types.InlineKeyboardButton('Изменить статус', callback_data='change_status')
     item2 = types.InlineKeyboardButton('Подробнее', callback_data='get_more')
-    markup.add(item1, item2)
+    markup.add(item1) # ,item2
 
     return markup
 
