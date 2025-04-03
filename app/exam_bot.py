@@ -219,8 +219,8 @@ def notify_auto_check():
                 chat_id = user[5]
                 exam_name = user[4]
                 type_quest_id = user[6]
-                #bot.send_message(chat_id, text=f'''Напоминание: До просрочки по экзамену "{exam_name}" 
-                #                                   остался 1 месяц!''', reply_markup = exam_done())
+                bot.send_message(chat_id, text=f'''Напоминание: До просрочки по экзамену "{exam_name}" 
+                                                   остался 1 месяц!''', reply_markup = keyboards_exam.exam_done())
                 print(f'Отправил сообщение пользователю {user[1]} {user[2]} об экзамене {exam_name}')
             except Exception as e:
                 print(
@@ -250,8 +250,7 @@ def notify_auto_check():
             try:
                 msg = get_fails_message(admin[3], admin[3]) # Отправляем org_structure_id мастера автоматики и электриков
                 if msg: # Проверка на отсутствие данных
-                    #bot.send_message(admin[2], text=msg, parse_mode="HTML")
-                    print(msg)
+                    bot.send_message(admin[2], text=msg, parse_mode="HTML")
                     print(f"Уведомомил в TG админа {admin[0]} {admin[1]}")
                 elif msg == None: 
                     print('✅ Все экзамены сданы вовремя!')
@@ -268,8 +267,7 @@ def notify_auto_check():
         msg = get_fails_message(id_1, id_2) # Отправляем org_structure_id мастеров
         try:
             if msg: # Проверка на отсутствие данных
-                #bot.send_message(admin[2], text=msg, parse_mode="HTML")
-                print(msg)
+                bot.send_message(boss[0][2], text=msg, parse_mode="HTML")
                 print(f"Уведомомил в TG админа {boss[0][0]} {boss[0][1]}")
             elif msg == None: 
                 print('✅ Все экзамены сданы вовремя!')
@@ -279,7 +277,7 @@ def notify_auto_check():
                     f"ERROR: Администратор {admin[0]} {admin[1]} не оповещён. Ошибка: {e}")
                 continue
 
-        time.sleep(86400)
+        time.sleep(60)
 
 
 @bot.callback_query_handler(func = lambda call: True)
