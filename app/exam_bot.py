@@ -236,7 +236,7 @@ def notify_auto_check():
                 exam_name = user[4]
                 type_quest_id = user[6]
                 bot.send_message(chat_id, text=f'''Напоминание: Вам необходимо сдать экзамен "{exam_name}"! 
-                                                   до просрочки осталось менее двух недель!''', reply_markup = keyboards_exam.exam_done_bt())
+                                                   до просрочки осталось менее двух недель!''', reply_markup = keyboards_exam.exam_done_bt(user_id, type_quest_id))
                 print(f'Отправил сообщение пользователю {user[1]} {user[2]} об экзамене {exam_name}')
             except Exception as e:
                 print(
