@@ -168,12 +168,12 @@ def get_fails_message(id_1, id_2):
 
         # Инициализируем таблицы
         overdue_table = "<b>❗ Не прошедшие аттестацию:</b>\n<pre>"
-        overdue_table += f"{'ФИО':<20} | {'Дата':<10} | {'Экзамен':<25}\n"
-        overdue_table += f"{'-' * 20} | {'-' * 10} | {'-' * 25}\n"
+        overdue_table += f"{'ФИО':<15} | {'Дата':<10} | {'Экзамен':<20}\n"
+        overdue_table += f"{'-' * 15} | {'-' * 10} | {'-' * 20}\n"
 
         soon_expire_table = "<b>⚠️ Подлежащие аттестации в этом месяце:</b>\n<pre>"
-        soon_expire_table += f"{'ФИО':<20} | {'Дата':<10} | {'Экзамен':<25}\n"
-        soon_expire_table += f"{'-' * 20} | {'-' * 10} | {'-' * 25}\n"
+        soon_expire_table += f"{'ФИО':<15} | {'Дата':<10} | {'Экзамен':<20}\n"
+        soon_expire_table += f"{'-' * 15} | {'-' * 10} | {'-' * 20}\n"
 
         for fail in exam_fails:
             # Формат ФИО: "Фамилия И.О."
@@ -220,7 +220,7 @@ def notify_auto_check():
                 exam_name = user[4]
                 type_quest_id = user[6]
                 bot.send_message(chat_id, text=f'''Напоминание: До просрочки по экзамену "{exam_name}" 
-                                                   остался 1 месяц!''', reply_markup = keyboards_exam.exam_done())
+                                                   остался 1 месяц!''', parse_mode="HTML")
                 print(f'Отправил сообщение пользователю {user[1]} {user[2]} об экзамене {exam_name}')
             except Exception as e:
                 print(
@@ -236,7 +236,7 @@ def notify_auto_check():
                 exam_name = user[4]
                 type_quest_id = user[6]
                 bot.send_message(chat_id, text=f'''Напоминание: Вам необходимо сдать экзамен "{exam_name}"! 
-                                                   до просрочки осталось менее двух недель!''', reply_markup = keyboards_exam.exam_done())
+                                                   до просрочки осталось менее двух недель!''', reply_markup = keyboards_exam.exam_done_bt())
                 print(f'Отправил сообщение пользователю {user[1]} {user[2]} об экзамене {exam_name}')
             except Exception as e:
                 print(
@@ -280,13 +280,15 @@ def notify_auto_check():
         time.sleep(60)
 
 
-@bot.callback_query_handler(func = lambda call: True)
-def exam_done_bt(call, people_id, type_quest_id):
-    id = people_id
-    type_quest = type_quest_id
-    if call.data == 'exam_done':
-        cfg.off_notify_exam(id, type_quest)
-        cfg.new_notify_exam(id, type_quest)
+@bot.callback_query_handler(func=lambda call: True)
+def exam_done_bt(call):
+    if call.data.startswith('exam_done'):
+        _, people_id, type_quest_id = call.data.split('|')
+        people_id = int(people_id)
+        type_quest_id = int(type_quest_id)
+        cfg.off_notify_exam(people_id, type_quest_id)  # Отключение уведомления 
+        if type_quest_id in [8, 9]:
+            cfg.new_notify_exam(people_id, type_quest_id)  # Создание новой записи (только для экзаменов ОРОП)
 
 
 # Запуск бота
