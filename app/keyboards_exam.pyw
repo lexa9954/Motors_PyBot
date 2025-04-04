@@ -21,3 +21,10 @@ def kb_main_menu_boss_user():
     markup.add(item1,item2)
 
     return markup
+
+def exam_done_bt(people_id, type_quest_id):
+    markup = types.InlineKeyboardMarkup()
+    item1 = types.InlineKeyboardButton('Я сдал экзамен', callback_data=f'exam_done|{people_id}|{type_quest_id}')
+    markup.add(item1)
+    
+    return markup
