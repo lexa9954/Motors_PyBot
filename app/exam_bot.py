@@ -1,6 +1,6 @@
 import threading
 import time
-import  keyboards_exam
+import keyboards_exam
 from datetime import datetime
 
 from datetime import datetime
@@ -71,10 +71,8 @@ def handle_tabel_number(message):
     if 'info' in result:
         bot.send_message(message.chat.id, result['info'], reply_markup=keyboards_exam.kb_main_menu_user(), parse_mode='HTML')
 
-
-
-def check_user_exam():
-    query = '''SELECT 
+def check_user_exam(id_1, id_2):
+    query = f'''SELECT 
     peoples.id AS people_id,
     COALESCE(org_structure_groups.group_name, 'Не указано') AS group_name,
     COALESCE(org_structure_positions.position_name, 'Не указана') AS position_name,
@@ -92,9 +90,10 @@ def check_user_exam():
     Exam_date.time_exam,
     peoples.TabNumberSap,
     CASE
-        WHEN CURDATE() >= DATE_ADD(Exam_date.last_date, INTERVAL 1 YEAR) THEN 'Просрочено'
-        WHEN CURDATE() >= DATE_ADD(Exam_date.last_date, INTERVAL 11 MONTH) THEN 'Остался месяц или меньше'
         WHEN Exam_date.success_quest_percent < 70 THEN 'Не сдал экзамен'
+        WHEN CURDATE() > DATE_ADD(Exam_date.last_date, INTERVAL 1 YEAR) THEN 'Просрочено'
+        WHEN CURDATE() BETWEEN DATE_ADD(DATE(last_date), INTERVAL 1 YEAR) - INTERVAL 14 DAY AND DATE_ADD(DATE(last_date), INTERVAL 1 YEAR) THEN 'Осталось менее двух недель'
+        WHEN DATE(last_date) < CURDATE() - INTERVAL 11 MONTH THEN 'Остался месяц или меньше'
         ELSE 'Успешно'
     END AS exam_status,
     COALESCE(org_structure.org_structure_id, 0) AS org_structure_id
@@ -119,17 +118,14 @@ WHERE
         WHERE Exam_date2.people_id = peoples.id
         AND Exam_date2.type_quest_id = Exam_date.type_quest_id
     )
-    AND peoples.status_id != 1
-    AND peoples.elect_group != 1 
-    AND peoples.elect_group != 5
-    AND Exam_date.type_quest_id != 4
-    AND Exam_date.type_quest_id != 3
-    AND peoples.status_id = 0 
+    AND peoples.status_id = 0
+    AND (org_structure.org_structure_id = {id_1} OR org_structure.org_structure_id = {id_2})
+    AND Exam_date.notify_check = 1
     
     AND (
         Exam_date.success_quest_percent < 70
-        OR CURDATE() >= DATE_ADD(Exam_date.last_date, INTERVAL 1 YEAR)
-        OR CURDATE() >= DATE_ADD(Exam_date.last_date, INTERVAL 11 MONTH)
+        OR CURDATE() > DATE_ADD(Exam_date.last_date, INTERVAL 1 YEAR)
+        OR DATE(last_date) < CURDATE() - INTERVAL 11 MONTH
     )
 ORDER BY 
     Exam_date.last_date DESC;
@@ -164,20 +160,20 @@ def format_date(date_str,fail):
     return date_obj_plus_one_year.strftime("%d.%m.%Y")  # Пример: "13.12.2025"
 
 
-def get_fails_message(type_msg, org_structure_id):
-    exam_fails = check_user_exam()
+def get_fails_message(id_1, id_2):
+    exam_fails = check_user_exam(id_1, id_2)
     if exam_fails:  # Проверяем, что результат не пустой
         # Заголовок сообщения
-        header = "📋 Список пользователей на сдачу экзаменов по электробезопасности:\n\n"
+        header = "📋 Список пользователей на сдачу экзаменов:\n\n"
 
         # Инициализируем таблицы
         overdue_table = "<b>❗ Не прошедшие аттестацию:</b>\n<pre>"
-        overdue_table += f"{'ФИО':<20} | {'Дата':<10}\n"
-        overdue_table += f"{'-' * 20} | {'-' * 10}\n"
+        overdue_table += f"{'ФИО':<20} | {'Дата':<10} | {'Экзамен':<25}\n"
+        overdue_table += f"{'-' * 20} | {'-' * 10} | {'-' * 25}\n"
 
         soon_expire_table = "<b>⚠️ Подлежащие аттестации в этом месяце:</b>\n<pre>"
-        soon_expire_table += f"{'ФИО':<20} | {'Дата':<10}\n"
-        soon_expire_table += f"{'-' * 20} | {'-' * 10}\n"
+        soon_expire_table += f"{'ФИО':<20} | {'Дата':<10} | {'Экзамен':<25}\n"
+        soon_expire_table += f"{'-' * 20} | {'-' * 10} | {'-' * 25}\n"
 
         for fail in exam_fails:
             # Формат ФИО: "Фамилия И.О."
@@ -192,11 +188,15 @@ def get_fails_message(type_msg, org_structure_id):
             else:
                 date = format_date(fail[13], True)  # Форматируем дату и прибавляем 1 год
 
+            exam_name = fail[10]  # Извлекаем название экзамена из fail[10]
+
             # Добавляем в нужную таблицу в зависимости от статуса
             if fail[16] == 'Просрочено':
-                overdue_table += f"{fio:<20} | {date:<10}\n"
+                overdue_table += f"{fio:<15} | {date:<10} | {exam_name:<20}\n"
             elif fail[16] == 'Остался месяц или меньше':
-                soon_expire_table += f"{fio:<20} | {date:<10}\n"
+                soon_expire_table += f"{fio:<15} | {date:<10} | {exam_name:<20}\n"
+            elif fail[16] == 'Осталось менее двух недель':
+                soon_expire_table += f"{fio:<15} | {date:<10} | {exam_name:<20}\n"
 
         overdue_table += "</pre>\n\n" if "ФИО" not in overdue_table else "</pre>"
         soon_expire_table += "</pre>" if "ФИО" not in soon_expire_table else "</pre>"
@@ -204,64 +204,101 @@ def get_fails_message(type_msg, org_structure_id):
         # Объединяем сообщение
         return header + overdue_table + soon_expire_table
     else:
-        return "✅ Все экзамены сданы вовремя!"
+        return None
 
-#  """ФУНКЦИЯ ОПОВЕЩЕНИЯ АДМИНИСТРАТОРОВ ОБ ИЗМЕНЕНИЯХ"""
-def notify_users():
-    print(f"{datetime.now().date()} | {datetime.now().strftime('%H:%M:%S')} БОТ ЗАПУЩЕН")
 
+
+# ОПОВЕЩЕНИЕ ПОЛЬЗОВАТЕЛЯ О СДАЧИ ЭКЗАМЕНА
+def notify_auto_check():
     while True:
-            # Уведомляем администраторов
-            admin_list = cfg.get_admins()
-            for admin in admin_list:
-                try:
-                    messages = get_fails_message("admins",-1)
-                    print("Уведомление в бот " + admin[1] + " " + admin[2])
-                    print(messages)
-                    bot.send_message(admin[4], text=messages, parse_mode="HTML")
-                    #for message in messages:
-                        #print("Уведомление в бот "+admin[1]+" "+admin[2])
-                        #print(message)
-                        #bot.send_message(admin[4], text=message, parse_mode="HTML")
-                except Exception as e:
+        user_list = cfg.notify_exam()
+        print(user_list)
+        for user in user_list:
+            try:
+                user_id = user[0]
+                chat_id = user[5]
+                exam_name = user[4]
+                type_quest_id = user[6]
+                bot.send_message(chat_id, text=f'''Напоминание: До просрочки по экзамену "{exam_name}" 
+                                                   остался 1 месяц!''', reply_markup = keyboards_exam.exam_done())
+                print(f'Отправил сообщение пользователю {user[1]} {user[2]} об экзамене {exam_name}')
+            except Exception as e:
+                print(
+                    f"{datetime.now().date()} | {datetime.now().strftime('%H:%M:%S')} "
+                    f"ERROR: Пользователь {user[1]} {user[2]} не оповещён. Ошибка: {e}")
+                continue
+
+        user_list2 = cfg.notify_exam_2weeks()
+        for user in user_list2:
+            try:
+                user_id = user[0]
+                chat_id = user[5]
+                exam_name = user[4]
+                type_quest_id = user[6]
+                bot.send_message(chat_id, text=f'''Напоминание: Вам необходимо сдать экзамен "{exam_name}"! 
+                                                   до просрочки осталось менее двух недель!''', reply_markup = keyboards_exam.exam_done())
+                print(f'Отправил сообщение пользователю {user[1]} {user[2]} об экзамене {exam_name}')
+            except Exception as e:
+                print(
+                    f"{datetime.now().date()} | {datetime.now().strftime('%H:%M:%S')} "
+                    f"ERROR: Пользователь {user[1]} {user[2]} не оповещён. Ошибка: {e}")
+                continue
+
+# ОПОВЕЩЕНИЕ МАСТЕРОВ ЭЛЕКТРОСЛУЖБЫ
+        admin_list = cfg.get_auto_master() + cfg.get_elec_master()
+        for admin in admin_list:
+            try:
+                msg = get_fails_message(admin[3], admin[3]) # Отправляем org_structure_id мастера автоматики и электриков
+                if msg: # Проверка на отсутствие данных
+                    bot.send_message(admin[2], text=msg, parse_mode="HTML")
+                    print(f"Уведомомил в TG админа {admin[0]} {admin[1]}")
+                elif msg == None: 
+                    print('✅ Все экзамены сданы вовремя!')
+            except Exception as e:
                     print(
                         f"{datetime.now().date()} | {datetime.now().strftime('%H:%M:%S')} "
-                        f"ERROR: Администратор {admin[1]} {admin[2]} не оповещён. Ошибка: {e}")
+                        f"ERROR: Администратор {admin[0]} {admin[1]} не оповещён. Ошибка: {e}")
                     continue
-            # Уведомляем пользователей
-            people_list = cfg.get_people()
-            for people in people_list:
-                try:
-                    messages = get_fails_message("peoples",people[5])
-                    print("Уведомление в бот " + people[1] + " " + people[2])
-                    print(messages)
-                    bot.send_message(people[4], text=messages, parse_mode="HTML")
-                    #print(f"Пользователь {people[1]} {people[2]} оповещён.")
-                    #for message in messages:
-                        #print("Уведомление в бот "+people[1]+" "+people[2])
-                        #print(message)
-                        #bot.send_message(people[4], text=message, parse_mode="HTML")
-                except Exception as e:
-                    print(
-                        f"{datetime.now().date()} | {datetime.now().strftime('%H:%M:%S')} "
-                        f"ERROR: Пользователь {people[1]} {people[2]} не оповещён. Ошибка: {e}")
-                    continue
-            # Задержка перед следующим циклом (проверка раз в час)
-            time.sleep(86400)  # Проверка раз в час
+
+# ОПОВЕЩЕНИЕ НАЧАЛЬНИКА УЧАСТКА ЭЛЕКТРОСЛУЖБЫ
+        boss = cfg.get_electro_boss()  # ID начальника
+        id_1 = admin_list[0][3]  # id первого мастера
+        id_2 = admin_list[1][3]  # id второго мастера
+        msg = get_fails_message(id_1, id_2) # Отправляем org_structure_id мастеров
+        try:
+            if msg: # Проверка на отсутствие данных
+                bot.send_message(boss[0][2], text=msg, parse_mode="HTML")
+                print(f"Уведомомил в TG админа {boss[0][0]} {boss[0][1]}")
+            elif msg == None: 
+                print('✅ Все экзамены сданы вовремя!')
+        except Exception as e:
+                print(
+                    f"{datetime.now().date()} | {datetime.now().strftime('%H:%M:%S')} "
+                    f"ERROR: Администратор {admin[0]} {admin[1]} не оповещён. Ошибка: {e}")
+                continue
+
+        time.sleep(60)
+
+
+@bot.callback_query_handler(func = lambda call: True)
+def exam_done_bt(call, people_id, type_quest_id):
+    id = people_id
+    type_quest = type_quest_id
+    if call.data == 'exam_done':
+        cfg.off_notify_exam(id, type_quest)
+        cfg.new_notify_exam(id, type_quest)
+
 
 # Запуск бота
 def run_bot():
     print("БОТ ЭКЗАМЕН НАЧАЛ РАБОТУ.....")
     try:
-        notify = threading.Thread(target=notify_users)
-        notify.start()
+        _thread_notify_check = threading.Thread(target=notify_auto_check)
+        _thread_notify_check.start()
         bot.infinity_polling()  # Запуск бесконечного опроса без потоков
-        notify.join()
+        _thread_notify_check.join()
     except KeyboardInterrupt:
         print("БОТ ЭКЗАМЕН ОСТАНОВЛЕН")
-
-
-
 
 # Запуск бота при выполнении файла
 if __name__ == '__main__':

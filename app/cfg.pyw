@@ -109,6 +109,15 @@ def get_admins():
                         WHERE permission="ADMIN"'''
     response = execute_query(URL+query, 5)
     return response
+
+#  '''ПОЛУЧЕНИЕ СПИСКА ДЛЯ ОПОВЕЩЕНИЯ ОБ ЭКЗАМЕНАХ'''
+def get_exam_list():
+    query = '''SELECT peoples.id, first_name, last_name, tabnumbersap, chat_id, str_org_structure FROM peoples 
+                        INNER JOIN log_auth_var ON peoples.id = log_auth_var.id_people
+                        WHERE chat_id != "NULL"'''
+    response = execute_query(URL+query, 5)
+    return response
+
 #  """ПОЛУЧЕНИЕ СПИСКА ПОЛЬЗОВАТЕЛЕЙ"""
 def get_people():
     query = '''SELECT peoples.id, first_name, last_name, tabnumbersap, chat_id, str_org_structure FROM peoples 
@@ -181,7 +190,7 @@ def insert_history_status(inv_num, chat_id, status_id, state):
 #  """ДОБАВЛЕНИЕ ЗАПИСИ С ОПОВЕЩЕНИЕМ"""
 def insert_telegram_commands(text):
     query = f'''INSERT INTO telegram_commands (bot_id, text)
-                VALUES ('{BOT_TOKEN}','{text}')'''
+                VALUES ('{BOT_TOKEN_MOTORS}','{text}')'''
     response = execute_query_read(URL+query, 1)
 
     return response
@@ -240,6 +249,88 @@ def notification_message(bot):
     elif bot == "ac":
         txt = execute_query(URL + f'SELECT text FROM warehousebm.telegram_commands WHERE viewed = 0 AND bot_id = "{BOT_TOKEN_AC}"', 1)
     return txt
+
 # '''ИЗМЕНЕНИЕ СТАТУСА ОТПРАВЛЕННОГО СООБЩЕНИЯ НА viewed = 1'''
 def notification_viewed():
-     execute_query(URL+'UPDATE telegram_commands SET viewed = 1 WHERE viewed = 0', 1)
+    execute_query(URL+'UPDATE telegram_commands SET viewed = 1 WHERE viewed = 0', 1)
+
+# """ПРОВЕРКА ЭКЗАМЕНА ЗА МЕСЯЦ ДО ПРОСРОЧКИ"""
+def notify_exam():
+    query = '''SELECT peoples.id, last_name, first_name, second_name, Exam_typeQuest.Type_quest_text, log_auth_var.chat_id, type_quest_id FROM peoples
+               INNER JOIN Exam_date ON Exam_date.people_id = peoples.id
+               INNER JOIN log_auth_var ON log_auth_var.id_people = peoples.id
+               INNER JOIN Exam_typeQuest ON Exam_typeQuest.id = Exam_date.type_quest_id
+               WHERE DATE(last_date) = CURDATE() - INTERVAL 11 MONTH
+               AND notify_check = 1'''
+    response = execute_query(URL+query, 7)
+    if response is None:
+        return []
+    else: return response
+
+# """ПРОВЕРКА ЭКЗАМЕНА ЗА ДВЕ НЕДЕЛИ ДО ПРОСРОЧКИ"""
+def notify_exam_2weeks():
+    query = '''SELECT peoples.id, last_name, first_name, second_name, Exam_typeQuest.Type_quest_text, log_auth_var.chat_id, type_quest_id FROM Exam_date
+               INNER JOIN peoples ON peoples.id = Exam_date.people_id
+               INNER JOIN log_auth_var ON log_auth_var.id_people = Exam_date.people_id
+               INNER JOIN Exam_typeQuest ON Exam_typeQuest.id = Exam_date.type_quest_id
+               WHERE CURDATE() BETWEEN DATE_ADD(DATE(last_date), INTERVAL 1 YEAR) - INTERVAL 14 DAY
+               AND DATE_ADD(DATE(last_date), INTERVAL 1 YEAR)
+               AND notify_check = 1'''
+    response = execute_query(URL+query, 7)
+    if response is None:
+        return []
+    else: return response
+
+
+# """ОТКЛЮЧЕНИЕ УВЕДОМЛЕНИЙ ОБ ЭКЗАМЕНЕ"""
+def off_notify_exam(id, type_quest_id):
+    query = f'''UPDATE Exam_date
+                SET notify_check = 0
+                WHERE people_id = {id}
+                AND type_quest_id = {type_quest_id}
+                AND notify_check = 1'''
+    response = execute_query_read(URL+query, 1)
+    return response
+
+def new_notify_exam(people_id, type_quest_id):
+    query = f'''INSERT INTO Exam_date (people_id, type_quest_id, success_quest_percent, last_date, time_exam, Protocol_num, date_type_exam)
+                VALUES ({people_id}, {type_quest_id}, 100, CURDATE(), 0, 0, 0)'''
+    response = execute_query(URL+query, 1)
+    return response
+
+# Мастер автоматики
+def get_auto_master():
+    query = '''SELECT last_name, first_name, chat_id, peoples.str_org_structure, org_structure.org_structure_id FROM log_auth_var
+               INNER JOIN peoples ON peoples.id = log_auth_var.id_people
+               INNER JOIN org_structure ON org_structure.id = peoples.str_org_structure
+               WHERE peoples.str_org_structure = 29'''
+    response = execute_query(URL+query, 5)
+    return response
+
+# Мастер электриков
+def get_elec_master():
+    query = '''SELECT last_name, first_name, chat_id, peoples.str_org_structure, org_structure.org_structure_id FROM log_auth_var
+               INNER JOIN peoples ON peoples.id = log_auth_var.id_people
+               INNER JOIN org_structure ON org_structure.id = peoples.str_org_structure
+               WHERE peoples.str_org_structure = 28'''
+    response = execute_query(URL+query, 5)
+    return response
+
+def get_electro_boss():
+    query = '''SELECT last_name, first_name, chat_id, peoples.str_org_structure, org_structure.org_structure_id FROM log_auth_var
+               INNER JOIN peoples ON peoples.id = log_auth_var.id_people
+               INNER JOIN org_structure ON org_structure.id = peoples.str_org_structure
+               WHERE peoples.str_org_structure = 26'''
+    response = execute_query(URL+query, 5)
+    return response
+
+
+# Подчиненные мастера автоматики
+'''SELECT last_name,first_name,second_name, org_structure_id FROM peoples
+INNER JOIN org_structure on org_structure.id = peoples.str_org_structure
+WHERE org_structure.org_structure_id = 29'''
+
+# Подчиненные мастера электриков
+'''SELECT last_name,first_name,second_name, org_structure_id FROM peoples
+INNER JOIN org_structure on org_structure.id = peoples.str_org_structure
+WHERE org_structure.org_structure_id = 28'''
